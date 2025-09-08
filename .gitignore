@@ -1,3 +1,4 @@
 php_js_project_example
 .idea
 venv
+.env
