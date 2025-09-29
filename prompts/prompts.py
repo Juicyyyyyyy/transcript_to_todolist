@@ -1,5 +1,6 @@
 from DTO.Requests.todo_list_request import TodoListRequest
 
+
 class Prompt:
 	@staticmethod
 	def transcript_to_todo_prompt(transcript):
@@ -16,9 +17,9 @@ class Prompt:
 	@staticmethod
 	def transcript_to_technical_todo_prompt(Request: TodoListRequest):
 		ast_text = Request.get_parsed_project()
-		MAX_LEN = 120_000
-		if len(ast_text) > MAX_LEN:
-			ast_text = ast_text[:MAX_LEN] + "\n...\n[AST TRONQUÉ POUR LA BRIÈVETÉ]"
+		# MAX_LEN = 120_000
+		# if len(ast_text) > MAX_LEN:
+		# 	ast_text = ast_text[:MAX_LEN] + "\n...\n[AST TRONQUÉ POUR LA BRIÈVETÉ]"
 
 		return f"""
 Tu es un **lead dev full-stack** chargé de dériver une **to-do technique détaillée** à partir d'un transcript de réunion **en respectant la structure réelle du projet** et **le stack détecté dans l'AST** (ex. Laravel/PHP, React/Vite, etc.).
@@ -38,12 +39,11 @@ Produire une to-do **technique et exécutable** qui indique précisément *où* 
 
 # Règles de sortie (FORMAT EXIGÉ)
 - Réponds en **Markdown** avec les sections suivantes (seulement si applicable) :
-  - **Backend (Laravel/PHP)**  
-  - **Frontend (React/JS/TS)**  
+  - **Backend**  
+  - **Frontend**  
   - **Base de données / Migrations**  
   - **Tests (PHPUnit / Frontend)**  
   - **Infra / DevOps**  
-  - **Clarifications requises**
 - Dans chaque section, liste des tâches sous forme de cases à cocher :
   - `- [ ] <PRIORITÉ: P0/P1/P2> <TAILLE: S/M/L> <ACTION IMPÉRATIVE>`
   - Indique **chemin(s) de fichier** exact(s) à modifier/créer (ex: `app/Http/Controllers/UserController.php`, `routes/api.php`, `resources/js/components/...`).
@@ -58,7 +58,9 @@ Produire une to-do **technique et exécutable** qui indique précisément *où* 
 - **Respecte l’architecture existante** déduite de l’AST (namespaces, conventions, répertoires).
 - **Ne propose pas** de créer des dossiers ou patterns absents si une alternative cohérente existe déjà dans le projet.
 - **Ignore** explicitement les dossiers exclus usuels (vendor, node_modules, storage, bootstrap/cache, public/build, dist, etc.) pour les chemins proposés.
-- Si le transcript est **ambigu** ou **incomplet**, ajoute une section **Clarifications requises** avec les questions bloquantes.
+
+- Si le transcript est **ambigu** ou **incomplet**, ajoute une section **Clarifications requises** avec les questions bloquantes. 
+Cette section doit être vide si tout est clair. Cette section doit etre uniquement dans la clef "clarifications_requises" du JSON de sortie.
 
 # Exemple de tâche (gabarit)
 - [ ] **P0 · M** Créer `app/Http/Requests/StoreProjectRequest.php` (FormRequest) — *dépend de la route POST `/api/projects`*
@@ -67,6 +69,5 @@ Produire une to-do **technique et exécutable** qui indique précisément *où* 
   - Tests: Feature test `tests/Feature/ProjectStoreTest.php` couvrant 200/422/auth.
 
 # Sortie attendue
-Une **liste actionnable** et **priorisée** de tâches techniques, groupées par domaine (Backend/Frontend/DB/Tests/Infra), s’appuyant sur la **structure réelle** du projet ci-dessus.
+Une **liste actionnable** et **priorisée** de tâches techniques, groupées par domaine (Backend/Frontend/DB/Tests/Infra), s’appuyant sur la **structure réelle** du projet ci-dessus. Respecte le format JSON demandé.
 """
-
