@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class technicalTodo(BaseModel):
+class TechnicalTodo(BaseModel):
 	id: int
 	title: str
 	description: str
