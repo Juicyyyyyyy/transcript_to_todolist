@@ -25,20 +25,15 @@ def main():
 
 	args = parser.parse_args()
 
-	# test
-	# controller = OpenAiController()
-	# response = controller.test()
-	# print(response)
-	# print(response.get_output_text())
-
 	transcript = read_docx(args.transcript_path)
 	controller = OpenAiController()
+
 	request = TodoListRequest(parsed_project=args.project_path, transcript=transcript)
 	response = controller.transcript_to_technical_todo(request)
 	date = datetime.now().strftime("%Y-%d-%m %H:%M:%S")
-	context = response.get_context()
-	technical_todo = response.get_technical_todo()
-	clarifications = response.get_clarifications()
+	context = response.context
+	technical_todo = response.technical_todo
+	clarifications = response.clarifications
 
 	# Create a folder of format name-date, inside this folder create a todo.md file and a clarifications.md file
 	folder_name = "output/" + f"{date.replace(' ', '_').replace(':', '-')}"
