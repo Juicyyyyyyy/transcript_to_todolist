@@ -61,7 +61,7 @@ generateBtn.addEventListener('click', async () => {
         // Step 2: Upload transcript
         const transcriptContent = await readTranscriptFile();
         
-        // Step 3: Parse project (placeholder - in real scenario, you'd call a parser)
+        // Step 3: Parse project using the parser API
         const parsedProject = await parseProject();
         
         // Step 4: Generate todo list
@@ -105,13 +105,26 @@ async function readTranscriptFile() {
     });
 }
 
-// Parse project (simplified - reads directory structure)
 async function parseProject() {
-    // In a real implementation, this would call your parser
-    // For now, we'll create a simple representation
-    return `Project: ${state.projectFile.name}
-Uploaded to: /tmp/${state.folderId}
-Files extracted and ready for analysis.`;
+    const projectPath = `/tmp/${state.folderId}`;
+    
+    const response = await fetch('/api/parse-project', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            project_path: projectPath
+        })
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to parse project. Make sure the zip file contains PHP or JavaScript files.');
+    }
+    
+    const result = await response.json();
+    return result.parsed_project;
 }
 
 // Generate todo list via API
