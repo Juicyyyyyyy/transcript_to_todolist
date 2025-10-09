@@ -16,7 +16,7 @@ class Prompt:
 
 	@staticmethod
 	def transcript_to_technical_todo_prompt(Request: TodoListRequest):
-		ast_text = Request.get_parsed_project()
+		ast_text = Request.parsed_project
 		# MAX_LEN = 120_000
 		# if len(ast_text) > MAX_LEN:
 		# 	ast_text = ast_text[:MAX_LEN] + "\n...\n[AST TRONQUÉ POUR LA BRIÈVETÉ]"
@@ -31,7 +31,7 @@ Produire une to-do **technique et exécutable** qui indique précisément *où* 
 <{ast_text}>
 
 # Contexte — Transcript de réunion
-<{Request.get_transcript()}>
+<{Request.transcript}>
 
 # Ce que tu dois déduire automatiquement
 - Déterminer le **stack** et l’architecture (ex. Laravel: contrôleurs, FormRequest, Eloquent models, migrations, routes/web.php ou routes/api.php; React: composants dans resources/js, router, hooks, Vite).
