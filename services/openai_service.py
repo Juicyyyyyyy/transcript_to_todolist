@@ -11,20 +11,24 @@ class OpenAiService:
 		self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 	def transcript_to_technical_todo(self, Request: TodoListRequest) -> OpenAiResponse:
-		return OpenAiResponse(self.client.chat.completions.create(
-			model="gpt-5-mini",
-			messages=[
-				{
-					"role": "system",
-					"content": "You are a helpful assistant that summarizes meeting transcripts into actionable to-do lists."
-				},
-				{
-					"role": "user", "content": Prompt.transcript_to_technical_todo_prompt(Request)
-				}
-			],
-			response_format={
-				"type": "json_schema",
-				"json_schema": JsonSchema.technical_todo_schema()
-				}
+		try:
+			return OpenAiResponse(self.client.chat.completions.create(
+				model="gpt-4o-mini",
+				messages=[
+					{
+						"role": "system",
+						"content": "You are a helpful assistant that summarizes meeting transcripts into actionable to-do lists."
+					},
+					{
+						"role": "user", "content": Prompt.transcript_to_technical_todo_prompt(Request)
+					}
+				],
+				response_format={
+					"type": "json_schema",
+					"json_schema": JsonSchema.technical_todo_schema()
+					}
+				)
 			)
-		)
+		except Exception as e:
+			print(f"OpenAI API Error: {str(e)}")
+			raise

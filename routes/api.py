@@ -25,13 +25,36 @@ async def import_transcript(folder_id: str, file: UploadFile = File(...)):
 		os.makedirs(folder_path, exist_ok=True)
 		
 		file_path = os.path.join(folder_path, file.filename)
+		content = await file.read()
+
 		with open(file_path, "wb") as f:
-			content = await file.read()
 			f.write(content)
+		
+		text_content = ""
+		filename_lower = file.filename.lower()
+		
+		if filename_lower.endswith('.txt'):
+			try:
+				text_content = content.decode('utf-8')
+			except UnicodeDecodeError:
+				text_content = content.decode('latin-1')
+		elif filename_lower.endswith('.docx'):
+			doc = Document(file_path)
+			paragraphs = [paragraph.text for paragraph in doc.paragraphs]
+			non_empty_paragraphs = [p for p in paragraphs if p.strip()]
+			text_content = '\n'.join(non_empty_paragraphs)
+			if len(text_content) == 0:
+				print("WARNING: No text extracted from docx file!")
+		else:
+			raise HTTPException(status_code=400, detail="Only .txt and .docx files are supported")
+		
+		return {"name": file.filename, "content": text_content}
 
-		return {"name": file.filename}
-
+	except HTTPException:
+		raise
 	except Exception as e:
+		import traceback
+		traceback.print_exc()
 		raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -72,6 +95,9 @@ async def generate_todolist(todo_list_request: TodoListRequest):
 	except HTTPException:
 		raise
 	except Exception as e:
+		print(f"Error generating todolist: {str(e)}")
+		import traceback
+		traceback.print_exc()
 		raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/build-output")

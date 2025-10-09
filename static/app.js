@@ -34,6 +34,12 @@ projectFileInput.addEventListener('change', (e) => {
 transcriptFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+        const fileName = file.name.toLowerCase();
+        if (!fileName.endsWith('.txt') && !fileName.endsWith('.docx')) {
+            showError('Please select a .txt or .docx file for the transcript');
+            transcriptFileInput.value = '';
+            return;
+        }
         state.transcriptFile = file;
         document.getElementById('transcript-filename').textContent = `✓ ${file.name}`;
         checkFilesReady();
@@ -52,19 +58,14 @@ generateBtn.addEventListener('click', async () => {
     try {
         showLoading(true);
         
-        // Generate unique folder ID
         state.folderId = `session_${Date.now()}`;
         
-        // Step 1: Upload project
         await uploadProject();
         
-        // Step 2: Upload transcript
-        const transcriptContent = await readTranscriptFile();
+        const transcriptContent = await uploadTranscript();
         
-        // Step 3: Parse project using the parser API
         const parsedProject = await parseProject();
         
-        // Step 4: Generate todo list
         await generateTodoList(parsedProject, transcriptContent);
         
         showLoading(false);
@@ -77,7 +78,6 @@ generateBtn.addEventListener('click', async () => {
     }
 });
 
-// Upload project to server
 async function uploadProject() {
     const formData = new FormData();
     formData.append('file', state.projectFile);
@@ -88,21 +88,46 @@ async function uploadProject() {
     });
     
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to upload project');
+        let errorMessage = 'Failed to upload project';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+            errorMessage = `Failed to upload project (Status: ${response.status})`;
+        }
+        throw new Error(errorMessage);
     }
     
     return await response.json();
 }
 
-// Read transcript file content
-async function readTranscriptFile() {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(new Error('Failed to read transcript file'));
-        reader.readAsText(state.transcriptFile);
+async function uploadTranscript() {
+    const formData = new FormData();
+    formData.append('file', state.transcriptFile);
+    
+    const response = await fetch(`/api/import-transcript/${state.folderId}`, {
+        method: 'POST',
+        body: formData
     });
+    
+    if (!response.ok) {
+        let errorMessage = 'Failed to upload transcript';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+            errorMessage = `Failed to upload transcript (Status: ${response.status})`;
+        }
+        throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+
+    if (!result.content) {
+        throw new Error('No content extracted from transcript file. The file may be empty or corrupted.');
+    }
+    
+    return result.content;
 }
 
 async function parseProject() {
@@ -119,8 +144,14 @@ async function parseProject() {
     });
     
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to parse project. Make sure the zip file contains PHP or JavaScript files.');
+        let errorMessage = 'Failed to parse project. Make sure the zip file contains PHP or JavaScript files.';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+            errorMessage = `Failed to parse project (Status: ${response.status})`;
+        }
+        throw new Error(errorMessage);
     }
     
     const result = await response.json();
@@ -129,6 +160,11 @@ async function parseProject() {
 
 // Generate todo list via API
 async function generateTodoList(parsedProject, transcript) {
+    console.log('Generating todo list with:', {
+        parsedProjectLength: parsedProject?.length,
+        transcriptLength: transcript?.length
+    });
+    
     const response = await fetch('/api/generate-todolist', {
         method: 'POST',
         headers: {
@@ -141,17 +177,23 @@ async function generateTodoList(parsedProject, transcript) {
     });
     
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to generate todo list');
+        let errorMessage = 'Failed to generate todo list';
+        try {
+            const errorData = await response.json();
+            console.error('Error from API:', errorData);
+            errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+            console.error('Failed to parse error response:', e);
+            errorMessage = `Failed to generate todo list (Status: ${response.status})`;
+        }
+        throw new Error(errorMessage);
     }
     
     state.results = await response.json();
     
-    // Store the results via build-output API
     await buildOutput();
 }
 
-// Store results via build-output API
 async function buildOutput() {
     const response = await fetch('/api/build-output', {
         method: 'POST',
@@ -166,21 +208,25 @@ async function buildOutput() {
     });
     
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to save results');
+        let errorMessage = 'Failed to save results';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+            errorMessage = `Failed to save results (Status: ${response.status})`;
+        }
+        throw new Error(errorMessage);
     }
     
     const buildData = await response.json();
     state.outputPath = buildData.path;
 }
 
-// Show results section
 function showResults() {
     uploadSection.style.display = 'none';
     resultsSection.style.display = 'block';
     
-    // Populate results
-    document.getElementById('context-content').textContent = 
+    document.getElementById('context-content').textContent =
         formatContent(state.results.context);
     document.getElementById('todo-content').textContent = 
         formatContent(state.results.technical_todolist);
@@ -258,19 +304,16 @@ document.getElementById('new-analysis-btn').addEventListener('click', () => {
     state.folderId = null;
     state.results = null;
     
-    // Reset UI
     projectFileInput.value = '';
     transcriptFileInput.value = '';
     document.getElementById('project-filename').textContent = '';
     document.getElementById('transcript-filename').textContent = '';
     generateBtn.disabled = true;
     
-    // Show upload section
     resultsSection.style.display = 'none';
     uploadSection.style.display = 'block';
 });
 
-// Utility functions
 function showLoading(show) {
     loadingOverlay.style.display = show ? 'flex' : 'none';
 }
@@ -284,7 +327,6 @@ function showError(message) {
 }
 
 function showSuccess(message) {
-    // Reuse error box for success messages
     errorMessage.style.borderLeftColor = '#10b981';
     errorText.textContent = message;
     errorMessage.style.display = 'flex';
@@ -294,7 +336,6 @@ function showSuccess(message) {
     }, 3000);
 }
 
-// Drag and drop support
 ['project-file', 'transcript-file'].forEach(id => {
     const input = document.getElementById(id);
     const label = input.parentElement;
