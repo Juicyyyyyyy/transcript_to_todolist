@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reunion to Code - Project Todo Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Reunion to Code</h1>
+            <p class="subtitle">Transform your meeting transcripts into actionable technical todos</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Step 1: Upload Files -->
+            <section class="card" id="upload-section">
+                <div class="card-header">
+                    <h2>📁 Step 1: Upload Your Files</h2>
+                </div>
+                <div class="card-body">
+                    <div class="upload-group">
+                        <label for="project-file" class="upload-label">
+                            <div class="upload-box">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <p class="upload-title">Project ZIP File</p>
+                                <p class="upload-description">Click to browse or drag & drop</p>
+                                <p class="file-name" id="project-filename"></p>
+                            </div>
+                            <input type="file" id="project-file" accept=".zip" hidden>
+                        </label>
+                    </div>
+
+                    <div class="upload-group">
+                        <label for="transcript-file" class="upload-label">
+                            <div class="upload-box">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <line x1="10" y1="9" x2="8" y2="9"></line>
+                                </svg>
+                                <p class="upload-title">Meeting Transcript</p>
+                                <p class="upload-description">Text file with meeting notes</p>
+                                <p class="file-name" id="transcript-filename"></p>
+                            </div>
+                            <input type="file" id="transcript-file" accept=".txt,.doc,.docx" hidden>
+                        </label>
+                    </div>
+
+                    <button id="generate-btn" class="btn btn-primary" disabled>
+                        <span class="btn-text">Generate Technical Todo</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 2: Results -->
+            <section class="card" id="results-section" style="display: none;">
+                <div class="card-header">
+                    <h2>✨ Step 2: Generated Results</h2>
+                </div>
+                <div class="card-body">
+                    <div class="result-tabs">
+                        <button class="tab-btn active" data-tab="context">📋 Context</button>
+                        <button class="tab-btn" data-tab="todo">✅ Technical Todo</button>
+                        <button class="tab-btn" data-tab="clarifications">❓ Clarifications</button>
+                    </div>
+
+                    <div class="result-content">
+                        <div id="context-tab" class="tab-content active">
+                            <h3>Project Context</h3>
+                            <div class="result-box" id="context-content"></div>
+                        </div>
+                        <div id="todo-tab" class="tab-content">
+                            <h3>Technical Todo List</h3>
+                            <div class="result-box" id="todo-content"></div>
+                        </div>
+                        <div id="clarifications-tab" class="tab-content">
+                            <h3>Clarifications Required</h3>
+                            <div class="result-box" id="clarifications-content"></div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="download-btn" class="btn btn-success">
+                            📥 Download Results
+                        </button>
+                        <button id="new-analysis-btn" class="btn btn-secondary">
+                            🔄 New Analysis
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" style="display: none;">
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Analyzing your project...</p>
+                    <p class="loading-subtext">This may take a moment</p>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="error-box" style="display: none;">
+                <div class="error-content">
+                    <span class="error-icon">⚠️</span>
+                    <span class="error-text" id="error-text"></span>
+                </div>
+                <button class="error-close" onclick="document.getElementById('error-message').style.display='none'">×</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by OpenAI GPT | <a href="/docs" target="_blank">API Documentation</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
+

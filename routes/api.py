@@ -19,8 +19,10 @@ def read_root():
 @router.post("/import-transcript/{folder_id}")
 async def import_transcript(folder_id: str, file: UploadFile = File(...)):
 	try:
-		file_path = f"/tmp/{folder_id}"
-
+		folder_path = os.path.join("/tmp", folder_id)
+		os.makedirs(folder_path, exist_ok=True)
+		
+		file_path = os.path.join(folder_path, file.filename)
 		with open(file_path, "wb") as f:
 			content = await file.read()
 			f.write(content)
