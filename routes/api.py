@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api", tags=["api"])
 def read_root():
 	return {"Hello": "World"}
 
-@router.post("/import-transcript{transcript}{folder_id}")
+@router.post("/import-transcript/{folder_id}")
 async def import_transcript(folder_id: str, file: UploadFile = File(...)):
 	try:
 		file_path = f"/tmp/{folder_id}"
@@ -50,27 +50,31 @@ async def import_zip(folder_id: str, file: UploadFile = File(...)):
 
 		return {"name": file.filename}
 
+	except HTTPException:
+		raise
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/generate-todolist/{todo_list_request}")
+@router.post("/generate-todolist")
 async def generate_todolist(todo_list_request: TodoListRequest):
-	controller = OpenAiController()
 	try:
+		controller = OpenAiController()
 		response = controller.transcript_to_technical_todo(todo_list_request)
 		if not response.context or not response.technical_todo:
 			raise HTTPException(status_code=500, detail="error occured while generating the todolist")
-
+		
+		return {"context": response.context, "technical_todolist": response.technical_todo, "clarifications": response.clarifications}
+	
+	except HTTPException:
+		raise
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=str(e))
 
-	return {"context": response.context, "technical_todolist": response.technical_todo, "clarifications": response.clarifications}
-
-@router.post("build-output/{output_request}")
+@router.post("/build-output")
 async def build_output(output_request: OutputRequest):
 	controller = BuildOutputController()
 	try:
-		controller.store(output_request)
-
+		result = controller.store(output_request)
+		return {"message": "Output stored successfully", "path": result}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=str(e))
