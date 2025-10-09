@@ -1,8 +1,13 @@
 import os
 import zipfile
+from http.client import responses
+
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from docx import Document
 
+from DTO.Requests.output_request import OutputRequest
+from DTO.Requests.todo_list_request import TodoListRequest
+from controllers.build_output_controller import BuildOutputController
 from controllers.open_ai_controller import OpenAiController
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -44,6 +49,28 @@ async def import_zip(folder_id: str, file: UploadFile = File(...)):
 			zip_ref.extractall(folder_path)
 
 		return {"name": file.filename}
+
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/generate-todolist/{todo_list_request}")
+async def generate_todolist(todo_list_request: TodoListRequest):
+	controller = OpenAiController()
+	try:
+		response = controller.transcript_to_technical_todo(todo_list_request)
+		if not response.context or not response.technical_todo:
+			raise HTTPException(status_code=500, detail="error occured while generating the todolist")
+
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+
+	return {"context": response.context, "technical_todolist": response.technical_todo, "clarifications": response.clarifications}
+
+@router.post("build-output/{output_request}")
+async def build_output(output_request: OutputRequest):
+	controller = BuildOutputController()
+	try:
+		controller.store(output_request)
 
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=str(e))

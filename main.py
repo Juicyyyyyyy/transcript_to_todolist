@@ -12,3 +12,6 @@ upload_id = str(uuid.uuid4())
 upload_path = f"/tmp/{upload_id}"
 
 mkdir(upload_path)
+
+
+# POST: path du projet -> parsedProject
