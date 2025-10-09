@@ -7,8 +7,10 @@ from docx import Document
 
 from DTO.Requests.output_request import OutputRequest
 from DTO.Requests.todo_list_request import TodoListRequest
+from DTO.Requests.parser_request import ParserRequest, ParseProjectRequest
 from controllers.build_output_controller import BuildOutputController
 from controllers.open_ai_controller import OpenAiController
+from controllers.parser_controller import ParserController
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -78,5 +80,29 @@ async def build_output(output_request: OutputRequest):
 	try:
 		result = controller.store(output_request)
 		return {"message": "Output stored successfully", "path": result}
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/extract-symbols")
+async def extract_symbols(parser_request: ParserRequest):
+	"""Extract symbols (classes, methods, properties) from a project file"""
+	controller = ParserController()
+	try:
+		response = controller.extract_symbols(parser_request)
+		return response
+	except ValueError as e:
+		raise HTTPException(status_code=400, detail=str(e))
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/parse-project")
+async def parse_project(parse_request: ParseProjectRequest):
+	"""Parse entire project and return all symbols as a formatted string for OpenAI"""
+	controller = ParserController()
+	try:
+		response = controller.parse_project(parse_request)
+		return response
+	except ValueError as e:
+		raise HTTPException(status_code=400, detail=str(e))
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=str(e))
