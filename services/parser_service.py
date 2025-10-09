@@ -3,10 +3,13 @@ from typing import Dict, Any
 
 import tree_sitter_php as tsphp
 import tree_sitter_javascript as tsjs
+import tree_sitter_typescript as tsts
 from tree_sitter import Language, Parser
 
 PHP_LANGUAGE = Language(tsphp.language_php())
 JS_LANGUAGE = Language(tsjs.language())
+TS_LANGUAGE = Language(tsts.language_typescript())
+TSX_LANGUAGE = Language(tsts.language_tsx())
 EXCLUDED_DIRS = [
 	'vendor',
 	'node_modules',
@@ -57,7 +60,11 @@ class ParserService:
 				continue
 			if file.suffix == ".php":
 				lang = PHP_LANGUAGE
-			elif file.suffix in (".js", ".jsx", ".ts", ".tsx"):
+			elif file.suffix == ".tsx":
+				lang = TSX_LANGUAGE
+			elif file.suffix == ".ts":
+				lang = TS_LANGUAGE
+			elif file.suffix in (".js", ".jsx"):
 				lang = JS_LANGUAGE
 			else:
 				continue
@@ -82,6 +89,20 @@ class ParserService:
 		def text(node):
 			return code[node.start_byte:node.end_byte]
 
+		# Determine file type
+		is_js_ts = file_path.endswith(('.js', '.jsx', '.ts', '.tsx'))
+
+		if is_js_ts:
+			# JavaScript/TypeScript extraction
+			self._extract_js_ts_symbols(root, result, text)
+		else:
+			# PHP extraction
+			self._extract_php_symbols(root, result, text)
+
+		return result
+
+	def _extract_php_symbols(self, root, result, text):
+		"""Extract symbols from PHP AST"""
 		def walk_class(node):
 			info = {"class": None, "extends": None, "properties": [], "methods": []}
 			for child in node.children:
@@ -113,7 +134,158 @@ class ParserService:
 			if child.type == "class_declaration":
 				result["classes"].append(walk_class(child))
 
-		return result
+	def _extract_js_ts_symbols(self, root, result, text):
+		"""Extract symbols from JavaScript/TypeScript AST"""
+		def walk_node(node):
+			# Handle class declarations
+			if node.type == "class_declaration":
+				class_info = self._extract_js_class(node, text)
+				if class_info:
+					result["classes"].append(class_info)
+			
+			# Handle interface declarations
+			elif node.type == "interface_declaration":
+				interface_info = self._extract_js_interface(node, text)
+				if interface_info:
+					result["classes"].append(interface_info)
+			
+			# Handle export statements
+			elif node.type == "export_statement":
+				for child in node.children:
+					if child.type in ("class_declaration", "interface_declaration", "function_declaration", "lexical_declaration"):
+						walk_node(child)
+			
+			# Handle function declarations
+			elif node.type == "function_declaration":
+				func_info = self._extract_js_function(node, text)
+				if func_info:
+					result["classes"].append(func_info)
+			
+			# Handle lexical declarations (const/let with arrow functions)
+			elif node.type == "lexical_declaration":
+				func_info = self._extract_js_lexical_function(node, text)
+				if func_info:
+					result["classes"].append(func_info)
+
+		# Walk through all top-level nodes
+		for child in root.children:
+			walk_node(child)
+
+	def _extract_js_class(self, node, text):
+		"""Extract information from a JavaScript/TypeScript class"""
+		info = {"class": None, "extends": None, "properties": [], "methods": [], "type": "class"}
+		
+		for child in node.children:
+			if child.type == "type_identifier" or child.type == "identifier":
+				if info["class"] is None:
+					info["class"] = text(child)
+			elif child.type == "class_heritage":
+				for c in child.children:
+					if c.type == "identifier" or c.type == "type_identifier":
+						info["extends"] = text(c)
+			elif child.type == "class_body":
+				for member in child.children:
+					if member.type == "field_definition" or member.type == "public_field_definition":
+						prop_info = self._extract_property_with_type(member, text)
+						if prop_info:
+							info["properties"].append(prop_info)
+					elif member.type == "method_definition":
+						method_info = self._extract_js_method(member, text)
+						if method_info:
+							info["methods"].append(method_info)
+		
+		return info if info["class"] else None
+
+	def _extract_js_interface(self, node, text):
+		"""Extract information from a TypeScript interface"""
+		info = {"class": None, "extends": None, "properties": [], "methods": [], "type": "interface"}
+		
+		for child in node.children:
+			if child.type == "type_identifier":
+				if info["class"] is None:
+					info["class"] = text(child)
+			elif child.type == "extends_clause" or child.type == "extends_type_clause":
+				for c in child.children:
+					if c.type == "type_identifier":
+						info["extends"] = text(c)
+			elif child.type == "object_type" or child.type == "interface_body":
+				for member in child.children:
+					if member.type == "property_signature":
+						prop_info = self._extract_property_with_type(member, text)
+						if prop_info:
+							info["properties"].append(prop_info)
+					elif member.type == "method_signature":
+						method_info = self._extract_js_method(member, text)
+						if method_info:
+							info["methods"].append(method_info)
+		
+		return info if info["class"] else None
+
+	def _extract_js_function(self, node, text):
+		"""Extract information from a function declaration"""
+		info = {"class": None, "methods": [], "type": "function"}
+		
+		for child in node.children:
+			if child.type == "identifier":
+				if info["class"] is None:
+					info["class"] = text(child)
+					break
+		
+		return info if info["class"] else None
+
+	def _extract_js_lexical_function(self, node, text):
+		"""Extract information from const/let function declarations"""
+		for child in node.children:
+			if child.type == "variable_declarator":
+				func_name = None
+				for c in child.children:
+					if c.type == "identifier":
+						func_name = text(c)
+					elif c.type in ("arrow_function", "function"):
+						if func_name:
+							return {"class": func_name, "methods": [], "type": "function"}
+		return None
+
+	def _extract_js_method(self, node, text):
+		"""Extract method information from a class method or interface method"""
+		method_info = {"name": None, "return": None}
+		
+		for child in node.children:
+			if child.type == "property_identifier" or child.type == "identifier":
+				if method_info["name"] is None:
+					method_info["name"] = text(child)
+			elif child.type == "type_annotation":
+				for c in child.children:
+					if c.type in ("type_identifier", "predefined_type"):
+						method_info["return"] = text(c)
+		
+		return method_info if method_info["name"] else None
+
+	def _get_property_name(self, node, text):
+		"""Get property name from a field or property signature"""
+		for child in node.children:
+			if child.type in ("property_identifier", "identifier"):
+				return text(child)
+		return None
+
+	def _extract_property_with_type(self, node, text):
+		"""Extract property name and type annotation from a field or property signature"""
+		prop_name = None
+		type_annotation = None
+		
+		for child in node.children:
+			if child.type in ("property_identifier", "identifier"):
+				prop_name = text(child)
+			elif child.type == "type_annotation":
+				# Get the type from the type_annotation node
+				for c in child.children:
+					if c.type in ("type_identifier", "predefined_type", "union_type", "literal_type"):
+						type_annotation = text(c)
+						break
+		
+		if prop_name:
+			return f"{prop_name}: {type_annotation}" if type_annotation else prop_name
+		return None
 
 	def extract_all_symbols(self) -> str:
 		"""Extract symbols from all parsed files and return as a formatted string"""
@@ -146,7 +318,7 @@ class ParserService:
 			output_lines.append(f"## File: {file_path}\n")
 			
 			if not classes:
-				output_lines.append("  No classes found in this file.\n\n")
+				output_lines.append("  No symbols found in this file.\n\n")
 				continue
 			
 			for cls in classes:
@@ -154,8 +326,16 @@ class ParserService:
 				extends = cls.get("extends")
 				properties = cls.get("properties", [])
 				methods = cls.get("methods", [])
+				symbol_type = cls.get("type", "class")
 				
-				output_lines.append(f"\n### Class: {class_name}")
+				# Format header based on type
+				if symbol_type == "interface":
+					output_lines.append(f"\n### Interface: {class_name}")
+				elif symbol_type == "function":
+					output_lines.append(f"\n### Function: {class_name}")
+				else:
+					output_lines.append(f"\n### Class: {class_name}")
+				
 				if extends:
 					output_lines.append(f" extends {extends}")
 				output_lines.append("\n")
