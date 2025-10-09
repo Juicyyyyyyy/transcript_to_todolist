@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reunion to Code - Project Todo Generator</title>
+    <title>Reunion to Code - Générateur de Todo Technique</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🎯 Reunion to Code</h1>
-            <p class="subtitle">Transform your meeting transcripts into actionable technical todos</p>
+            <p class="subtitle">Transformez vos comptes-rendus de réunion en todos techniques exploitables</p>
         </header>
 
         <div class="main-content">
-            <!-- Step 1: Upload Files -->
+            <!-- Étape 1 : Import des fichiers -->
             <section class="card" id="upload-section">
                 <div class="card-header">
-                    <h2>Upload Your Files</h2>
+                    <h2>Importez vos fichiers</h2>
                 </div>
                 <div class="card-body">
                     <div class="upload-group">
@@ -28,8 +28,8 @@
                                     <polyline points="17 8 12 3 7 8"></polyline>
                                     <line x1="12" y1="3" x2="12" y2="15"></line>
                                 </svg>
-                                <p class="upload-title">Project ZIP File</p>
-                                <p class="upload-description">Click to browse or drag & drop</p>
+                                <p class="upload-title">Fichier ZIP du projet</p>
+                                <p class="upload-description">Cliquez pour parcourir ou glissez-déposez</p>
                                 <p class="file-name" id="project-filename"></p>
                             </div>
                             <input type="file" id="project-file" accept=".zip" hidden>
@@ -46,8 +46,8 @@
                                     <line x1="16" y1="17" x2="8" y2="17"></line>
                                     <line x1="10" y1="9" x2="8" y2="9"></line>
                                 </svg>
-                                <p class="upload-title">Meeting Transcript</p>
-                                <p class="upload-description">Text or Word document (.txt, .docx)</p>
+                                <p class="upload-title">Transcription de réunion</p>
+                                <p class="upload-description">Document texte ou Word (.txt, .docx)</p>
                                 <p class="file-name" id="transcript-filename"></p>
                             </div>
                             <input type="file" id="transcript-file" accept=".txt,.docx" hidden>
@@ -55,60 +55,60 @@
                     </div>
 
                     <button id="generate-btn" class="btn btn-primary" disabled>
-                        <span class="btn-text">Generate Technical Todo</span>
+                        <span class="btn-text">Générer le Todo technique</span>
                         <span class="spinner" style="display: none;"></span>
                     </button>
                 </div>
             </section>
 
-            <!-- Step 2: Results -->
+            <!-- Étape 2 : Résultats -->
             <section class="card" id="results-section" style="display: none;">
                 <div class="card-header">
-                    <h2>Generated Results</h2>
+                    <h2>Résultats générés</h2>
                 </div>
                 <div class="card-body">
                     <div class="result-tabs">
-                        <button class="tab-btn active" data-tab="context">📋 Context</button>
-                        <button class="tab-btn" data-tab="todo">✅ Technical Todo</button>
+                        <button class="tab-btn active" data-tab="context">📋 Contexte</button>
+                        <button class="tab-btn" data-tab="todo">✅ Todo technique</button>
                         <button class="tab-btn" data-tab="clarifications">❓ Clarifications</button>
                     </div>
 
                     <div class="result-content">
                         <div id="context-tab" class="tab-content active">
-                            <h3>Project Context</h3>
+                            <h3>Contexte du projet</h3>
                             <div class="result-box" id="context-content"></div>
                         </div>
                         <div id="todo-tab" class="tab-content">
-                            <h3>Technical Todo List</h3>
+                            <h3>Liste des todos techniques</h3>
                             <div class="result-box" id="todo-content"></div>
                         </div>
                         <div id="clarifications-tab" class="tab-content">
-                            <h3>Clarifications Required</h3>
+                            <h3>Clarifications requises</h3>
                             <div class="result-box" id="clarifications-content"></div>
                         </div>
                     </div>
 
                     <div class="action-buttons">
                         <button id="download-btn" class="btn btn-success">
-                            📥 Download Results
+                            📥 Télécharger les résultats
                         </button>
                         <button id="new-analysis-btn" class="btn btn-secondary">
-                            🔄 New Analysis
+                            🔄 Nouvelle analyse
                         </button>
                     </div>
                 </div>
             </section>
 
-            <!-- Loading Overlay -->
+            <!-- Superposition de chargement -->
             <div id="loading-overlay" style="display: none;">
                 <div class="loading-content">
                     <div class="loading-spinner"></div>
-                    <p class="loading-text">Analyzing your project...</p>
-                    <p class="loading-subtext">This may take a moment</p>
+                    <p class="loading-text">Analyse de votre projet...</p>
+                    <p class="loading-subtext">Cela peut prendre un moment</p>
                 </div>
             </div>
 
-            <!-- Error Message -->
+            <!-- Message d'erreur -->
             <div id="error-message" class="error-box" style="display: none;">
                 <div class="error-content">
                     <span class="error-icon">⚠️</span>
@@ -119,7 +119,7 @@
         </div>
 
         <footer>
-            <p>Powered by OpenAI GPT | <a href="/docs" target="_blank">API Documentation</a></p>
+            <p>Propulsé par OpenAI GPT | <a href="/docs" target="_blank">Documentation de l'API</a></p>
         </footer>
     </div>
 

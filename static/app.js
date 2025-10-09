@@ -21,7 +21,7 @@ projectFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         if (!file.name.toLowerCase().endsWith('.zip')) {
-            showError('Please select a ZIP file for the project');
+            showError('Veuillez sélectionner un fichier ZIP pour le projet');
             projectFileInput.value = '';
             return;
         }
@@ -36,7 +36,7 @@ transcriptFileInput.addEventListener('change', (e) => {
     if (file) {
         const fileName = file.name.toLowerCase();
         if (!fileName.endsWith('.txt') && !fileName.endsWith('.docx')) {
-            showError('Please select a .txt or .docx file for the transcript');
+            showError('Veuillez sélectionner un fichier .txt ou .docx pour la transcription');
             transcriptFileInput.value = '';
             return;
         }
@@ -74,7 +74,7 @@ generateBtn.addEventListener('click', async () => {
     } catch (error) {
         console.error('Error:', error);
         showLoading(false);
-        showError(error.message || 'An error occurred during processing');
+        showError(error.message || 'Une erreur est survenue pendant le traitement');
     }
 });
 
@@ -88,12 +88,12 @@ async function uploadProject() {
     });
     
     if (!response.ok) {
-        let errorMessage = 'Failed to upload project';
+        let errorMessage = "Échec de l'import du projet";
         try {
             const errorData = await response.json();
             errorMessage = errorData.detail || errorMessage;
         } catch (e) {
-            errorMessage = `Failed to upload project (Status: ${response.status})`;
+            errorMessage = `Échec de l'import du projet (Statut : ${response.status})`;
         }
         throw new Error(errorMessage);
     }
@@ -111,12 +111,12 @@ async function uploadTranscript() {
     });
     
     if (!response.ok) {
-        let errorMessage = 'Failed to upload transcript';
+        let errorMessage = "Échec de l'import de la transcription";
         try {
             const errorData = await response.json();
             errorMessage = errorData.detail || errorMessage;
         } catch (e) {
-            errorMessage = `Failed to upload transcript (Status: ${response.status})`;
+            errorMessage = `Échec de l'import de la transcription (Statut : ${response.status})`;
         }
         throw new Error(errorMessage);
     }
@@ -124,7 +124,7 @@ async function uploadTranscript() {
     const result = await response.json();
 
     if (!result.content) {
-        throw new Error('No content extracted from transcript file. The file may be empty or corrupted.');
+        throw new Error('Aucun contenu extrait du fichier de transcription. Le fichier est peut-être vide ou corrompu.');
     }
     
     return result.content;
@@ -144,12 +144,12 @@ async function parseProject() {
     });
     
     if (!response.ok) {
-        let errorMessage = 'Failed to parse project. Make sure the zip file contains PHP or JavaScript files.';
+        let errorMessage = 'Échec de l\'analyse du projet. Assurez-vous que le zip contient des fichiers PHP ou JavaScript.';
         try {
             const errorData = await response.json();
             errorMessage = errorData.detail || errorMessage;
         } catch (e) {
-            errorMessage = `Failed to parse project (Status: ${response.status})`;
+            errorMessage = `Échec de l'analyse du projet (Statut : ${response.status})`;
         }
         throw new Error(errorMessage);
     }
@@ -177,14 +177,14 @@ async function generateTodoList(parsedProject, transcript) {
     });
     
     if (!response.ok) {
-        let errorMessage = 'Failed to generate todo list';
+        let errorMessage = 'Échec de la génération de la liste de todos';
         try {
             const errorData = await response.json();
             console.error('Error from API:', errorData);
             errorMessage = errorData.detail || errorMessage;
         } catch (e) {
             console.error('Failed to parse error response:', e);
-            errorMessage = `Failed to generate todo list (Status: ${response.status})`;
+            errorMessage = `Échec de la génération de la liste de todos (Statut : ${response.status})`;
         }
         throw new Error(errorMessage);
     }
@@ -208,12 +208,12 @@ async function buildOutput() {
     });
     
     if (!response.ok) {
-        let errorMessage = 'Failed to save results';
+        let errorMessage = 'Échec de l\'enregistrement des résultats';
         try {
             const errorData = await response.json();
             errorMessage = errorData.detail || errorMessage;
         } catch (e) {
-            errorMessage = `Failed to save results (Status: ${response.status})`;
+            errorMessage = `Échec de l'enregistrement des résultats (Statut : ${response.status})`;
         }
         throw new Error(errorMessage);
     }
@@ -239,7 +239,7 @@ function formatContent(content) {
     if (typeof content === 'object') {
         return JSON.stringify(content, null, 2);
     }
-    return content || 'No data available';
+    return content || 'Aucune donnée disponible';
 }
 
 // Tab switching
@@ -260,24 +260,24 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 document.getElementById('download-btn').addEventListener('click', async () => {
     try {
         // Create a downloadable file with all results
-        const content = `REUNION TO CODE - GENERATED RESULTS
+        const content = `REUNION TO CODE - RÉSULTATS GÉNÉRÉS
 ${'='.repeat(50)}
 
-PROJECT CONTEXT
+CONTEXTE DU PROJET
 ${'-'.repeat(50)}
 ${formatContent(state.results.context)}
 
-TECHNICAL TODO LIST
+LISTE DES TODOS TECHNIQUES
 ${'-'.repeat(50)}
 ${formatContent(state.results.technical_todolist)}
 
-CLARIFICATIONS REQUIRED
+CLARIFICATIONS REQUISES
 ${'-'.repeat(50)}
 ${formatContent(state.results.clarifications)}
 
 ${'='.repeat(50)}
-Generated on: ${new Date().toLocaleString()}
-Output path: ${state.outputPath || 'N/A'}
+Généré le : ${new Date().toLocaleString()}
+Chemin de sortie : ${state.outputPath || 'N/A'}
 `;
         
         const blob = new Blob([content], { type: 'text/plain' });
@@ -290,9 +290,9 @@ Output path: ${state.outputPath || 'N/A'}
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        showSuccess('Results downloaded successfully!');
+        showSuccess('Résultats téléchargés avec succès !');
     } catch (error) {
-        showError('Failed to download results');
+        showError('Échec du téléchargement des résultats');
     }
 });
 
