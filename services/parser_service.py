@@ -307,19 +307,19 @@ class ParserService:
 	def _format_symbols_for_openai(self, all_symbols: list) -> str:
 		"""Format extracted symbols into a readable string for OpenAI"""
 		output_lines = []
+		
+		# Filter out files with no symbols
+		files_with_symbols = [f for f in all_symbols if f.get("classes", [])]
+		
 		output_lines.append("# Project Structure Analysis\n")
-		output_lines.append(f"Total files analyzed: {len(all_symbols)}\n")
+		output_lines.append(f"Total files with symbols: {len(files_with_symbols)}\n")
 		output_lines.append("=" * 80 + "\n\n")
 		
-		for file_data in all_symbols:
+		for file_data in files_with_symbols:
 			file_path = file_data.get("file", "Unknown")
 			classes = file_data.get("classes", [])
 			
 			output_lines.append(f"## File: {file_path}\n")
-			
-			if not classes:
-				output_lines.append("  No symbols found in this file.\n\n")
-				continue
 			
 			for cls in classes:
 				class_name = cls.get("class_name") or cls.get("class", "Unknown")
