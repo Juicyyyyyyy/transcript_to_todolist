@@ -226,20 +226,37 @@ function showResults() {
     uploadSection.style.display = 'none';
     resultsSection.style.display = 'block';
     
-    document.getElementById('context-content').textContent =
+    document.getElementById('context-content').innerHTML =
         formatContent(state.results.context);
-    document.getElementById('todo-content').textContent = 
+    document.getElementById('todo-content').innerHTML = 
         formatContent(state.results.technical_todolist);
-    document.getElementById('clarifications-content').textContent = 
+    document.getElementById('clarifications-content').innerHTML = 
         formatContent(state.results.clarifications);
 }
 
 // Format content for display
 function formatContent(content) {
     if (typeof content === 'object') {
-        return JSON.stringify(content, null, 2);
+        content = JSON.stringify(content, null, 2);
+        return `<pre><code>${escapeHtml(content)}</code></pre>`;
     }
-    return content || 'Aucune donnée disponible';
+    if (!content) {
+        return '<p class="no-data">Aucune donnée disponible</p>';
+    }
+    // Parse markdown to HTML
+    return marked.parse(content);
+}
+
+// Helper function to escape HTML in JSON content
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
 }
 
 // Tab switching

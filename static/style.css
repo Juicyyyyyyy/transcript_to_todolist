@@ -260,12 +260,187 @@ header h1 {
     border-radius: 0.5rem;
     padding: 1.5rem;
     min-height: 200px;
-    white-space: pre-wrap;
-    font-family: 'Courier New', monospace;
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    line-height: 1.7;
     color: var(--text-primary);
     overflow-x: auto;
+}
+
+/* Markdown Content Styles */
+.result-box h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.result-box h1:first-child {
+    margin-top: 0;
+}
+
+.result-box h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.4rem;
+}
+
+.result-box h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.result-box h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.result-box h5, .result-box h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.result-box p {
+    margin-bottom: 1rem;
+}
+
+.result-box p.no-data {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+}
+
+.result-box ul, .result-box ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+}
+
+.result-box li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.result-box ul li {
+    list-style-type: disc;
+}
+
+.result-box ol li {
+    list-style-type: decimal;
+}
+
+.result-box ul ul, .result-box ol ul {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.result-box ul ul li {
+    list-style-type: circle;
+}
+
+.result-box code {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    font-family: 'Courier New', 'Monaco', monospace;
+    font-size: 0.875em;
+    color: #e11d48;
+}
+
+.result-box pre {
+    background: #1e293b;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    border: 1px solid #334155;
+}
+
+.result-box pre code {
+    background: none;
+    border: none;
+    color: #e2e8f0;
+    padding: 0;
+    font-size: 0.875rem;
+    display: block;
+    line-height: 1.5;
+}
+
+.result-box blockquote {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: #f8fafc;
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.result-box hr {
+    border: none;
+    border-top: 2px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+
+.result-box a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.result-box a:hover {
+    border-bottom-color: var(--primary-color);
+}
+
+.result-box table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.875rem;
+}
+
+.result-box th, .result-box td {
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.result-box th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.result-box tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+.result-box strong {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.result-box em {
+    font-style: italic;
 }
 
 /* Action Buttons */
