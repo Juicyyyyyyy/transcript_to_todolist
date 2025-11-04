@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime
 
 from DTO.Requests.todo_list_request import TodoListRequest
-from controllers.open_ai_controller import OpenAiController
+from controllers.llm_controller import LLMController
 
 from docx import Document
 from dotenv import load_dotenv
@@ -26,7 +26,7 @@ def main():
 	args = parser.parse_args()
 
 	transcript = read_docx(args.transcript_path)
-	controller = OpenAiController()
+	controller = LLMController()
 
 	request = TodoListRequest(parsed_project=args.project_path, transcript=transcript)
 	response = controller.transcript_to_technical_todo(request)

@@ -9,7 +9,7 @@ from DTO.Requests.output_request import OutputRequest
 from DTO.Requests.todo_list_request import TodoListRequest
 from DTO.Requests.parser_request import ParserRequest, ParseProjectRequest
 from controllers.build_output_controller import BuildOutputController
-from controllers.open_ai_controller import OpenAiController
+from controllers.llm_controller import LLMController
 from controllers.parser_controller import ParserController
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -85,7 +85,7 @@ async def import_zip(folder_id: str, file: UploadFile = File(...)):
 @router.post("/generate-todolist")
 async def generate_todolist(todo_list_request: TodoListRequest):
 	try:
-		controller = OpenAiController()
+		controller = LLMController()
 		response = controller.transcript_to_technical_todo(todo_list_request)
 		if not response.context or not response.technical_todo:
 			raise HTTPException(status_code=500, detail="error occured while generating the todolist")
@@ -131,4 +131,16 @@ async def parse_project(parse_request: ParseProjectRequest):
 	except ValueError as e:
 		raise HTTPException(status_code=400, detail=str(e))
 	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/test-llm-api")
+def test_llm_api():
+	try:
+		controller = LLMController()
+		response = controller.test_api_call()
+		return {"response": response}
+	except Exception as e:
+		print(f"Error testing LLM API: {str(e)}")
+		import traceback
+		traceback.print_exc()
 		raise HTTPException(status_code=500, detail=str(e))
