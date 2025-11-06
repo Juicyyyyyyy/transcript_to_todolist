@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Dict, Any
 
@@ -32,9 +33,11 @@ class ParserService:
 	"""Service for parsing project files and extracting symbols"""
 
 	def __init__(self):
+		self.logger = logging.getLogger(__name__)
 		self._parsed_folder_tree = {}  # {relative_path: tree}
 		self._file_codes = {}
 		self.folder_path = None
+		self.logger.debug("[PARSER-SERVICE] Parser Service initialized")
 
 	def _parse_file(self, file_path, language):
 		parser = Parser()
@@ -45,9 +48,14 @@ class ParserService:
 
 	def set_ast(self, project_path: str) -> Dict[str, Any]:
 		"""Parse all files in folder and store ASTs internally"""
+		self.logger.info(f"[PARSER-SERVICE] Setting AST for project: {project_path}")
 		self.folder_path = Path(project_path).resolve()
+		self.logger.debug(f"[PARSER-SERVICE] Resolved folder path: {self.folder_path}")
+		
 		res = {}
 		self._file_codes = {}
+		file_count = 0
+		skipped_count = 0
 		
 		for file in self.folder_path.rglob('*'):
 			if not file.is_file():
@@ -55,8 +63,10 @@ class ParserService:
 			rel = file.relative_to(self.folder_path)
 			rel_posix = rel.as_posix()
 			if any(f'/{Path(d).as_posix().strip("/")}/' in f'/{rel_posix}/' for d in EXCLUDED_DIRS):
+				skipped_count += 1
 				continue
 			if file.name.endswith(EXCLUDED_EXTENSIONS) or file.suffixes[-2:] == ['.blade', '.php']:
+				skipped_count += 1
 				continue
 			if file.suffix == ".php":
 				lang = PHP_LANGUAGE
@@ -69,11 +79,17 @@ class ParserService:
 			else:
 				continue
 
-			tree, code = self._parse_file(file, lang)
-			res[rel_posix] = tree
-			self._file_codes[rel_posix] = code
+			try:
+				tree, code = self._parse_file(file, lang)
+				res[rel_posix] = tree
+				self._file_codes[rel_posix] = code
+				file_count += 1
+			except Exception as e:
+				self.logger.warning(f"[PARSER-SERVICE] Failed to parse {rel_posix}: {str(e)}")
+				skipped_count += 1
 
 		self._parsed_folder_tree = res
+		self.logger.info(f"[PARSER-SERVICE] Successfully parsed {file_count} files, skipped {skipped_count} files")
 		return res
 
 	def extract_symbols(self, file_path: str) -> Dict[str, Any]:
@@ -289,20 +305,31 @@ class ParserService:
 
 	def extract_all_symbols(self) -> str:
 		"""Extract symbols from all parsed files and return as a formatted string"""
+		self.logger.info(f"[PARSER-SERVICE] Extracting symbols from all parsed files")
+		
 		if not self._parsed_folder_tree:
+			self.logger.error("[PARSER-SERVICE] No files parsed. set_ast must be called first")
 			raise ValueError("No files parsed. Run set_ast first.")
 		
 		all_symbols = []
+		success_count = 0
+		fail_count = 0
 		
 		for file_path in sorted(self._parsed_folder_tree.keys()):
 			try:
 				symbols = self.extract_symbols(file_path)
 				all_symbols.append(symbols)
+				success_count += 1
 			except Exception as e:
 				# Skip files that can't be parsed
+				self.logger.debug(f"[PARSER-SERVICE] Could not extract symbols from {file_path}: {str(e)}")
+				fail_count += 1
 				continue
 		
-		return self._format_symbols_for_openai(all_symbols)
+		self.logger.info(f"[PARSER-SERVICE] Extracted symbols from {success_count} files, failed for {fail_count} files")
+		formatted = self._format_symbols_for_openai(all_symbols)
+		self.logger.info(f"[PARSER-SERVICE] Generated formatted output: {len(formatted)} chars")
+		return formatted
 	
 	def _format_symbols_for_openai(self, all_symbols: list) -> str:
 		"""Format extracted symbols into a readable string for OpenAI"""
