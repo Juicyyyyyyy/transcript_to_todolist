@@ -1,5 +1,6 @@
 import os
 import zipfile
+import tempfile
 from http.client import responses
 
 from fastapi import APIRouter, File, UploadFile, HTTPException
@@ -21,7 +22,7 @@ def read_root():
 @router.post("/import-transcript/{folder_id}")
 async def import_transcript(folder_id: str, file: UploadFile = File(...)):
 	try:
-		folder_path = os.path.join("/tmp", folder_id)
+		folder_path = os.path.join(tempfile.gettempdir(), folder_id)
 		os.makedirs(folder_path, exist_ok=True)
 		
 		file_path = os.path.join(folder_path, file.filename)
@@ -64,7 +65,7 @@ async def import_zip(folder_id: str, file: UploadFile = File(...)):
 		if not file.filename.lower().endswith(".zip"):
 			raise HTTPException(status_code=400, detail="Only .zip files are allowed")
 
-		folder_path = os.path.join("/tmp", folder_id)
+		folder_path = os.path.join(tempfile.gettempdir(), folder_id)
 		os.makedirs(folder_path, exist_ok=True)
 
 		zip_path = os.path.join(folder_path, file.filename)

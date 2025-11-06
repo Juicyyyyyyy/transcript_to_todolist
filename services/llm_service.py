@@ -22,6 +22,7 @@ class LLMService:
 				context_window=128000,
 				is_chat_model=True,
 				is_function_calling_model=False,
+				request_timeout=300
 			)
 			self.logger.info("LLM client initialized successfully with model: gemma3:latest")
 		except Exception as e:
